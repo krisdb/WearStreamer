@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="40dp"
+    tools:deviceIds="wear_round">
+
+
+    <TextView
+        android:id="@+id/main_podcast_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Podcasts"
+        android:textSize="12dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="16dp"
+        />
+
+    <TextView
+        android:id="@+id/main_radio_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Radio"
+        android:textSize="12dp"
+        android:layout_alignBaseline="@+id/main_podcast_link"
+        android:layout_alignBottom="@+id/main_podcast_link"
+        android:layout_alignParentStart="true"
+        />
+
+</RelativeLayout>
