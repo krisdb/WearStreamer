@@ -28,7 +28,5 @@ public class WearMainActivity extends Activity {
                 startActivity(new Intent(getApplicationContext(), WearRadioActivity.class));
             }
         });
-
-
     }
 }

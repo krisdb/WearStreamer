@@ -2,25 +2,17 @@ package com.wear.streamer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.SyncStateContract;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
-import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.ByteArrayOutputStream;
@@ -39,11 +31,10 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
-
         mGoogleApiClient.connect();
-
-        Boolean test = mGoogleApiClient.isConnected();
 
         findViewById(R.id.btn_main_import).setOnClickListener(new View.OnClickListener() {
 
@@ -67,20 +58,21 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-                        for(Node node : nodes.getNodes()) {
-                            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello World", null).await();
-                            if(!result.getStatus().isSuccess()){
-                                Log.e("test", "error");
-                            } else {
-                                Log.i("test", "success!! sent to: " + node.getDisplayName());
-                            }
+
+                        NodeApi.GetLocalNodeResult nodes = Wearable.NodeApi.getLocalNode(mGoogleApiClient).await();
+                        Node node = nodes.getNode();
+                        MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello World", null).await();
+
+                        if (!result.getStatus().isSuccess()) {
+                            Log.e(getPackageName(), "error");
+                        } else {
+                            Log.i(getPackageName(), "success!!!! sent to: " + node.getId());
                         }
                     }
                 }).start();
 
             } else {
-                Log.e("test", "not connected");
+                Log.e(getPackageName(), "not connected");
             }
             /*
             Uri uri = null;
@@ -137,19 +129,16 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
     }
 
     @Override
-    protected void onStop() {
-        //mGoogleApiClient.disconnect();
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
+        mGoogleApiClient.disconnect();
     }
-
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        String test = connectionResult.getErrorMessage();
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        String test = "";
     }
 
     @Override
