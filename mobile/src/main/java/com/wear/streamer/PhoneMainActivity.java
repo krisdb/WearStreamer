@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class PhoneMainActivity extends Activity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
@@ -37,7 +38,6 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
         mGoogleApiClient.connect();
 
         findViewById(R.id.btn_main_import).setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -67,6 +67,24 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                             Log.e(getPackageName(), "error");
                         } else {
                             Log.i(getPackageName(), "success!!!! sent to: " + node.getId());
+                        }
+                    }
+                }).start();
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+
+                        for (Node node : nodes.getNodes()) {
+                            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello World", null).await();
+
+                            if (!result.getStatus().isSuccess()) {
+                                Log.e(getPackageName(), "error");
+                            } else {
+                                Log.i(getPackageName(), "success!!!! sent to: " + node.getId());
+                            }
                         }
                     }
                 }).start();

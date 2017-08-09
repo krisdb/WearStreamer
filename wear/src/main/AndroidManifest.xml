@@ -26,8 +26,9 @@
         <activity android:name=".WearRadioActivity" />
         <service android:name=".FileImportService">
             <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <action android:name="com.google.android.gms.wearablel" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/prefix" />
             </intent-filter>
         </service>
         <meta-data
