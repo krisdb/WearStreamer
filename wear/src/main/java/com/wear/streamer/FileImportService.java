@@ -50,7 +50,6 @@ public class FileImportService extends WearableListenerService {
         Log.i(getPackageName(), "success on wear");
     }
 
-
     @Override
     public void onPeerConnected(Node peer) {
         Handler mHandler = new Handler(getMainLooper());

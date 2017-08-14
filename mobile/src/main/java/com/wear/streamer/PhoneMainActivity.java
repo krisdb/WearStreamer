@@ -1,6 +1,8 @@
 package com.wear.streamer;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,7 +11,10 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.CapabilityApi;
+import com.google.android.gms.wearable.CapabilityInfo;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
@@ -20,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 
 public class PhoneMainActivity extends Activity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
@@ -35,6 +41,7 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
         mGoogleApiClient.connect();
 
         findViewById(R.id.btn_main_import).setOnClickListener(new View.OnClickListener() {
@@ -44,7 +51,6 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("*/*");
                 startActivityForResult(intent, READ_REQUEST_CODE);
-
             }
         });
     }
@@ -58,62 +64,61 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+                CapabilityApi.GetCapabilityResult result =
+                        Wearable.CapabilityApi.getCapability(
+                                mGoogleApiClient, "wear_streamer",
+                                CapabilityApi.FILTER_REACHABLE).await();
 
-                        NodeApi.GetLocalNodeResult nodes = Wearable.NodeApi.getLocalNode(mGoogleApiClient).await();
-                        Node node = nodes.getNode();
-                        MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello World", null).await();
+                Set<Node> connectedNodes = result.getCapability().getNodes();
 
-                        if (!result.getStatus().isSuccess()) {
-                            Log.e(getPackageName(), "error");
-                        } else {
-                            Log.i(getPackageName(), "success!!!! sent to: " + node.getId());
-                        }
-                    }
-                }).start();
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
+                        Wearable.MessageApi.sendMessage(mGoogleApiClient, pickBestNodeId(connectedNodes),
+                                VOICE_TRANSCRIPTION_MESSAGE_PATH, voiceData).setResultCallback(
+                                new ResultCallback() {
+                                    @Override
+                                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                                        if (!sendMessageResult.getStatus().isSuccess()) {
+                                            // Failed to send message
+                                        }
+                                    }
+                                }
+                        );
+/*
+
 
                         NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
 
                         for (Node node : nodes.getNodes()) {
-                            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello World", null).await();
+                            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello Watch", null).await();
 
                             if (!result.getStatus().isSuccess()) {
-                                Log.e(getPackageName(), "error");
+                                Log.e(getPackageName(), "error " + result.getStatus());
                             } else {
-                                Log.i(getPackageName(), "success!!!! sent to: " + node.getId());
+                                Log.i(getPackageName(), "success!!!! sent to: " + node.getId() + " " + result.getStatus());
                             }
                         }
+
+*/
                     }
                 }).start();
-
             } else {
                 Log.e(getPackageName(), "not connected");
             }
-            /*
-            Uri uri = null;
-            if (resultData != null) {
-                uri = resultData.getData();
 
-                Asset asset = createAssetFromFile(uri);
 
-                PutDataRequest request = PutDataRequest.create("/wearstreamer");
-                request.putAsset("opml", asset);
-
-                Wearable.DataApi.putDataItem(mGoogleApiClient, request)
-                        .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                            @Override
-                            public void onResult(DataApi.DataItemResult dataItemResult) {
-                                String test = dataItemResult.getStatus().getStatusMessage();
-                                if (!dataItemResult.getStatus().isSuccess()) {
-                                }
-                            }
-                        });
-            }
-            */
         }
+    }
+
+    private String pickBestNodeId(Set<Node> nodes) {
+        String bestNodeId = null;
+        // Find a nearby node or pick one arbitrarily
+        for (Node node : nodes) {
+            if (node.isNearby()) {
+                return node.getId();
+            }
+            bestNodeId = node.getId();
+        }
+        return bestNodeId;
     }
 
     private Asset createAssetFromFile(Uri uri) {
