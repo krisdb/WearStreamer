@@ -1,77 +1,89 @@
 package com.wear.streamer;
 
-import android.os.Bundle;
-import android.os.Handler;
-import android.provider.SyncStateContract;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
+import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageEvent;
-import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+
 public class FileImportService extends WearableListenerService {
+    private GoogleApiClient mGoogleApiClient = null;
 
     @Override
     public void onCreate()
     {
-        Handler mHandler = new Handler(getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "created", Toast.LENGTH_LONG).show();
-            }
-        });
-        Log.i(getPackageName(), "Service created");
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .build();
+        mGoogleApiClient.connect();
+
         super.onCreate();
     }
 
     @Override
-    public void onMessageReceived(MessageEvent messageEvent) {
+    public void onMessageReceived(final MessageEvent message) {
+
+        try {
+            //byte[] decodestring = Base64.decode(message.getData(), Base64.DEFAULT);
+            File file = Environment.getExternalStorageDirectory();
+            File dir = new File(file.getAbsolutePath() + "/");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            File document = new File(dir, "podcasts.opml");
+
+            if (document.exists()) {
+                document.delete();
+            }
+
+            FileOutputStream fos = new FileOutputStream(document.getPath());
+            fos.write(message.getData());
+            fos.close();
+        }
+        catch(Exception ex)
+        {
+            Log.e(getPackageName(), ex.getMessage());
+        }
+
+        /*
         Handler mHandler = new Handler(getMainLooper());
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), "hi", Toast.LENGTH_LONG).show();
+                byte[] test = messageEvent.getData();
+                Toast.makeText(getApplicationContext(), messageEvent.getData().toString(), Toast.LENGTH_LONG).show();
             }
         });
         Log.i(getPackageName(), "success on wear");
+        */
     }
 
     @Override
-    public void onPeerConnected(Node peer) {
-        Handler mHandler = new Handler(getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "Peer connected", Toast.LENGTH_LONG).show();
-            }
-        });
-        Log.i(getPackageName(), "Peer connected");
-    }
-    /*
-    @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Toast.makeText(this, "Success", Toast.LENGTH_LONG).show();
         for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_CHANGED &&
-                    event.getDataItem().getUri().getPath().equals("/wearstreamer")) {
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals("/wearstreamer")) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-                Asset profileAsset = dataMapItem.getDataMap().getAsset("opml");
+                Asset asset = dataMapItem.getDataMap().getAsset("opml");
+
+                InputStream in = Wearable.DataApi.getFdForAsset(mGoogleApiClient, asset).await().getInputStream();
+                mGoogleApiClient.disconnect();
+
+                List<PodcastItem> podcasts = OPMLParser.parse(in);
             }
         }
     }
-    */
+
 }

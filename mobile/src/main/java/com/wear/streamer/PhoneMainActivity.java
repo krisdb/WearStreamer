@@ -11,19 +11,25 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.CapabilityApi;
 import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -56,7 +62,7 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+    public void onActivityResult(int requestCode, int resultCode, final Intent resultData) {
 
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
 
@@ -64,48 +70,50 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                CapabilityApi.GetCapabilityResult result =
-                        Wearable.CapabilityApi.getCapability(
-                                mGoogleApiClient, "wear_streamer",
-                                CapabilityApi.FILTER_REACHABLE).await();
+                        Uri uri = null;
+                        if (resultData != null) {
+                            uri = resultData.getData();
 
-                Set<Node> connectedNodes = result.getCapability().getNodes();
+                            Asset asset = createAssetFromFile(uri);
+
+                            PutDataMapRequest dataMap = PutDataMapRequest.create("/wearstreamer");
+                            dataMap.getDataMap().putAsset("opml", asset);
+                            dataMap.getDataMap().putLong("time", new Date().getTime());
+                            PutDataRequest request = dataMap.asPutDataRequest();
+                            Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                                    .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                                        @Override
+                                        public void onResult(DataApi.DataItemResult dataItemResult) {
+                                            Log.i(getPackageName(), "Sending image was successful: " + dataItemResult.getStatus().isSuccess());
+                                        }
+                                    });
 
 
-                        Wearable.MessageApi.sendMessage(mGoogleApiClient, pickBestNodeId(connectedNodes),
-                                VOICE_TRANSCRIPTION_MESSAGE_PATH, voiceData).setResultCallback(
+                            /*
+
+                        CapabilityApi.GetCapabilityResult result = Wearable.CapabilityApi.getCapability(mGoogleApiClient, "wear_streamer", CapabilityApi.FILTER_REACHABLE).await();
+
+                        Set<Node> connectedNodes = result.getCapability().getNodes();
+
+                        Wearable.MessageApi.sendMessage(mGoogleApiClient, pickBestNodeId(connectedNodes), "/wearstreamer", opml).setResultCallback(
                                 new ResultCallback() {
                                     @Override
-                                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                                    public void onResult(Result result) {
+                                        MessageApi.SendMessageResult sendMessageResult = (MessageApi.SendMessageResult) result;
                                         if (!sendMessageResult.getStatus().isSuccess()) {
                                             // Failed to send message
                                         }
                                     }
                                 }
                         );
-/*
 
-
-                        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-
-                        for (Node node : nodes.getNodes()) {
-                            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "Hello Watch", null).await();
-
-                            if (!result.getStatus().isSuccess()) {
-                                Log.e(getPackageName(), "error " + result.getStatus());
-                            } else {
-                                Log.i(getPackageName(), "success!!!! sent to: " + node.getId() + " " + result.getStatus());
-                            }
-                        }
-
-*/
                     }
+                */
+                }}
                 }).start();
             } else {
                 Log.e(getPackageName(), "not connected");
             }
-
-
         }
     }
 
