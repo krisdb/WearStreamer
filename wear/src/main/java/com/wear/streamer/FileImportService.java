@@ -1,5 +1,6 @@
 package com.wear.streamer;
 
+import android.content.ContentValues;
 import android.os.Environment;
 import android.util.Log;
 
@@ -17,6 +18,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 public class FileImportService extends WearableListenerService {
@@ -34,45 +37,8 @@ public class FileImportService extends WearableListenerService {
     }
 
     @Override
-    public void onMessageReceived(final MessageEvent message) {
-
-        try {
-            //byte[] decodestring = Base64.decode(message.getData(), Base64.DEFAULT);
-            File file = Environment.getExternalStorageDirectory();
-            File dir = new File(file.getAbsolutePath() + "/");
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            File document = new File(dir, "podcasts.opml");
-
-            if (document.exists()) {
-                document.delete();
-            }
-
-            FileOutputStream fos = new FileOutputStream(document.getPath());
-            fos.write(message.getData());
-            fos.close();
-        }
-        catch(Exception ex)
-        {
-            Log.e(getPackageName(), ex.getMessage());
-        }
-
-        /*
-        Handler mHandler = new Handler(getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                byte[] test = messageEvent.getData();
-                Toast.makeText(getApplicationContext(), messageEvent.getData().toString(), Toast.LENGTH_LONG).show();
-            }
-        });
-        Log.i(getPackageName(), "success on wear");
-        */
-    }
-
-    @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
+        new DBPodcasts(getApplicationContext()).deleteAll();
         for (DataEvent event : dataEvents) {
             if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals("/wearstreamer")) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
@@ -82,8 +48,26 @@ public class FileImportService extends WearableListenerService {
                 mGoogleApiClient.disconnect();
 
                 List<PodcastItem> podcasts = OPMLParser.parse(in);
+
+                for(PodcastItem podcast : podcasts) {
+                    ContentValues cv = new ContentValues();
+                    cv.put("title", podcast.getTitle());
+                    cv.put("link", podcast.getLink().toString());
+                    cv.put("dateAdded", GetDate());
+
+                    new DBPodcasts(getApplicationContext()).insert(cv);
+                }
             }
         }
+    }
+
+    private String GetDate()
+    {
+        Calendar c = Calendar.getInstance();
+        System.out.println("Current time => " + c.getTime());
+
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+        return df.format(c.getTime());
     }
 
 }

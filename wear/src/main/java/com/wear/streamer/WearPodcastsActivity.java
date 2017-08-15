@@ -1,10 +1,14 @@
 package com.wear.streamer;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.wearable.view.WearableRecyclerView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +42,24 @@ public class WearPodcastsActivity extends Activity{
 
         @Override
         protected Void doInBackground(Void... params) {
-            RssItem item = new RssItem();
-            item.setTitle("Into the Nexus");
-            item.setLink("http://feeds.feedburner.com/itncast?format=xml");
-            mPodcasts.add(item);
 
-            item = new RssItem();
-            item.setTitle("Norm Macdonald Live");
-            item.setLink("http://norm.videopodcastnetwork.libsynpro.com/rss");
-            mPodcasts.add(item);
+            final DBPodcasts db = new DBPodcasts(mContext);
+            final SQLiteDatabase sdb = db.select();
+
+            final Cursor cursor = sdb.rawQuery("SELECT title,link FROM [tbl_podcasts]", null);
+
+            if (cursor.moveToFirst())
+            {
+                while (!cursor.isAfterLast()) {
+                    RssItem podcast = new RssItem();
+                    podcast.setTitle(cursor.getString(0));
+                    podcast.setLink(cursor.getString(1));
+                    mPodcasts.add(podcast);
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+            db.close();
             return null;
         }
 
