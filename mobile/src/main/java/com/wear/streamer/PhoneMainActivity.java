@@ -45,6 +45,8 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 .addOnConnectionFailedListener(this)
                 .build();
 
+        ((TextView)findViewById(R.id.tv_version)).setText(BuildConfig.VERSION_NAME);
+
         findViewById(R.id.btn_import_opml).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
