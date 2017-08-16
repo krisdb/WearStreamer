@@ -2,13 +2,16 @@ package com.wear.streamer;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.List;
 
 public class DBPodcasts extends SQLiteOpenHelper
 {
     public DBPodcasts(final Context context) {
-        super(context, "Items", null, 3);
+        super(context, "Items", null, 1);
     }
 
     public void onCreate(final SQLiteDatabase db)
@@ -49,10 +52,19 @@ public class DBPodcasts extends SQLiteOpenHelper
         db.delete("tbl_podcasts", null, null);
         db.close();
     }
+
+    public void delete(final Integer id)
+    {
+        final SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete("tbl_podcasts","[id] = ?", new String[] { id.toString() });
+        db.close();
+    }
+
     public void update(final ContentValues cv, final Integer itemId)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.update("tbl_podcasts", cv, "[itemId] = ?", new String[] { itemId.toString() });
+        db.update("tbl_podcasts", cv, "[id] = ?", new String[] { itemId.toString() });
         db.close();
     }
 

@@ -1,8 +1,12 @@
 package com.wear.streamer;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.wearable.view.WearableRecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,12 +55,46 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
 
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(mContext, WearPodcastEpisodesActivity.class);
+                Intent intent = new Intent(mContext, PodcastEpisodesActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putString("url", item.getLink().toString());
                 intent.putExtras(bundle);
 
                 mContext.startActivity(intent);
+            }
+        });
+
+        viewHolder.mTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
+                alert.setMessage("Are you sure to delete this podcast?");
+                alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new DBPodcasts(mContext).delete(item.getId());
+                        mItems.clear();
+                        mItems = Utilities.GetPodcasts(mContext);
+                        notifyDataSetChanged();
+                        dialog.dismiss();
+
+                    }
+                });
+                alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+                    }
+                });
+
+                alert.show();
+
+
+                return false;
             }
         });
 

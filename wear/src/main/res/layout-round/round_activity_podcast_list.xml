@@ -12,4 +12,13 @@
         android:layout_height="match_parent"
         />
 
+    <TextView
+        android:id="@+id/empty_podcast_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="Add podcasts through phone app"
+        android:textSize="16dp"
+        />
 </RelativeLayout>

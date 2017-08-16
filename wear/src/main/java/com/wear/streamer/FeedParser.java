@@ -1,5 +1,7 @@
 package com.wear.streamer;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
@@ -56,7 +58,7 @@ public class FeedParser {
                 eventType = parser.next();
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+
         }
 
         return items;

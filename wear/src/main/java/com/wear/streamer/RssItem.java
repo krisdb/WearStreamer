@@ -8,6 +8,7 @@ public class RssItem implements Comparable<RssItem>
     private String title, description, date;
     private URL link, media;
     private Boolean isRadio = false;
+    private int id;
 
     public Boolean IsRadio() {
         return isRadio;
@@ -36,8 +37,16 @@ public class RssItem implements Comparable<RssItem>
         return title;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public void setTitle(final String title) {
         this.title = title.trim();
+    }
+
+    public void setId(final int id) {
+        this.id = id;
     }
 
     public URL getLink() {

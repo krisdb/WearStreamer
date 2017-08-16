@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-public class FileImportService extends WearableListenerService {
+public class OPMLImportService extends WearableListenerService {
     private GoogleApiClient mGoogleApiClient = null;
 
     @Override
@@ -40,7 +40,7 @@ public class FileImportService extends WearableListenerService {
     public void onDataChanged(DataEventBuffer dataEvents) {
         new DBPodcasts(getApplicationContext()).deleteAll();
         for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals("/wearstreamer")) {
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().equals("/opmlimport")) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                 Asset asset = dataMapItem.getDataMap().getAsset("opml");
 

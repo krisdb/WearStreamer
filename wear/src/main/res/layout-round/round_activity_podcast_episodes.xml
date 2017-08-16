@@ -7,9 +7,18 @@
     tools:deviceIds="wear_round">
 
     <android.support.wearable.view.WearableRecyclerView
-        android:id="@+id/media_list"
+        android:id="@+id/episode_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />
 
+    <TextView
+        android:id="@+id/empty_podcast_episodes"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="No episodes found"
+        android:textSize="16dp"
+        />
 </RelativeLayout>

@@ -10,7 +10,7 @@ import android.support.wearable.view.WearableRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WearRadioActivity extends Activity{
+public class RadioActivity extends Activity{
 
     private MediaPlayer mMediaPlayer = null;
     private WearableRecyclerView mMediaList = null;

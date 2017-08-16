@@ -1,19 +1,16 @@
 package com.wear.streamer;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.wearable.view.WearableRecyclerView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WearPodcastsActivity extends Activity{
+public class PodcastsActivity extends Activity{
 
     private WearableRecyclerView mMediaList = null;
     private List<RssItem> mPodcasts = new ArrayList<>();
@@ -29,6 +26,12 @@ public class WearPodcastsActivity extends Activity{
         mMediaList.setBezelWidth(0.5f);
         mMediaList.setScrollDegreesPerScreen(90);
 
+        new GetPodcasts(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         new GetPodcasts(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -43,30 +46,22 @@ public class WearPodcastsActivity extends Activity{
         @Override
         protected Void doInBackground(Void... params) {
 
-            final DBPodcasts db = new DBPodcasts(mContext);
-            final SQLiteDatabase sdb = db.select();
+            mPodcasts = Utilities.GetPodcasts(mContext);
 
-            final Cursor cursor = sdb.rawQuery("SELECT title,link FROM [tbl_podcasts]", null);
-
-            if (cursor.moveToFirst())
-            {
-                while (!cursor.isAfterLast()) {
-                    RssItem podcast = new RssItem();
-                    podcast.setTitle(cursor.getString(0));
-                    podcast.setLink(cursor.getString(1));
-                    mPodcasts.add(podcast);
-                    cursor.moveToNext();
-                }
-            }
-            cursor.close();
-            db.close();
             return null;
         }
 
         protected void onPostExecute(Void param)
         {
-            PodcastsAdapter adapter = new PodcastsAdapter(mContext, mPodcasts);
-            mMediaList.setAdapter(adapter);
+            if (mPodcasts.size() > 0)
+            {
+                mMediaList.setAdapter(new PodcastsAdapter(mContext, mPodcasts));
+                findViewById(R.id.empty_podcast_list).setVisibility(TextView.GONE);
+            }
+            else
+            {
+                findViewById(R.id.empty_podcast_list).setVisibility(TextView.VISIBLE);
+            }
         }
     }
 }

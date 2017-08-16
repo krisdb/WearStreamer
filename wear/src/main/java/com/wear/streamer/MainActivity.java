@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 
-public class WearMainActivity extends Activity {
+public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,7 +17,7 @@ public class WearMainActivity extends Activity {
 
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), WearPodcastsActivity.class));
+                startActivity(new Intent(getApplicationContext(), PodcastsActivity.class));
             }
         });
 
@@ -25,7 +25,7 @@ public class WearMainActivity extends Activity {
 
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), WearRadioActivity.class));
+                startActivity(new Intent(getApplicationContext(), RadioActivity.class));
             }
         });
     }

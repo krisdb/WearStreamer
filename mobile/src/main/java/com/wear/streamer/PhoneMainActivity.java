@@ -1,27 +1,23 @@
 package com.wear.streamer;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
+import android.webkit.URLUtil;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.CapabilityApi;
-import com.google.android.gms.wearable.CapabilityInfo;
 import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -31,8 +27,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PhoneMainActivity extends Activity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
@@ -49,13 +45,70 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        findViewById(R.id.btn_main_import).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_import_opml).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                startActivityForResult(intent, READ_REQUEST_CODE);
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(PhoneMainActivity.this);
+                alert.setTitle("Warning");
+                alert.setMessage("Importing podcasts will overwrite any existing podcasts.");
+                alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        intent.addCategory(Intent.CATEGORY_OPENABLE);
+                        intent.setType("*/*");
+                        startActivityForResult(intent, READ_REQUEST_CODE);
+                    }
+                });
+                alert.setNegativeButton("CLOSE", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+                    }
+                });
+
+                alert.show();
+            }
+        });
+
+        findViewById(R.id.btn_import_podcast).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                final TextView tvTitle = ((TextView) findViewById(R.id.tv_import_podcast_title));
+                final TextView tvLink = ((TextView) findViewById(R.id.tv_import_podcast_link));
+
+                String title = tvTitle.getText().toString();
+                String link = tvLink.getText().toString();
+
+                if (title.length() > 0 && link.length() > 0) {
+                    link = link.startsWith("http") == false ? "http://" + link.toLowerCase() : link.toLowerCase();
+                    if (isValidUrl(link)) {
+                        PutDataMapRequest dataMap = PutDataMapRequest.create("/podcastimport");
+                        dataMap.getDataMap().putString("title", title);
+                        dataMap.getDataMap().putString("link", link);
+                        dataMap.getDataMap().putLong("time", new Date().getTime());
+
+                        PutDataRequest request = dataMap.asPutDataRequest();
+                        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                                    @Override
+                                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                                        Toast.makeText(getApplicationContext(), "Podcast added successfully", Toast.LENGTH_LONG).show();
+                                        tvTitle.setText(null);
+                                        tvLink.setText(null);
+                                    }
+                                });
+                    }
+                    else
+                        Toast.makeText(getApplicationContext(), "Enter a valid url", Toast.LENGTH_LONG).show();
+                }
+                else
+                    Toast.makeText(getApplicationContext(), "Enter a title and url", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -147,4 +200,12 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
     public void onConnectionSuspended(int i) {
 
     }
+
+    private static boolean isValidUrl(String url) {
+        Pattern p = Patterns.WEB_URL;
+        Matcher m = p.matcher(url.toLowerCase());
+
+        return m.matches();
+    }
+
 }

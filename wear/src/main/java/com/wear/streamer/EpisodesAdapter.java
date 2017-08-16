@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 
-public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapter.ViewHolder> implements MediaPlayer.OnPreparedListener, MediaPlayer.OnBufferingUpdateListener  {
+public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapter.ViewHolder> implements MediaPlayer.OnBufferingUpdateListener  {
 
     private List<RssItem> mItems;
     private MediaPlayer mMediaPlayer;
@@ -60,7 +60,7 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
             @Override
             public void onClick(View view) {
                 if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                    StopStream(item.IsRadio() == false);
+                    StopStream(item);
                     viewHolder.mTextView.setTypeface(null, Typeface.NORMAL);
                 } else {
                     StartSteam(viewHolder.mTextView, item);
@@ -77,11 +77,11 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         return mItems.size();
     }
 
-    private void StopStream(Boolean savePosition)
+    private void StopStream(RssItem item)
     {
-        if (savePosition && mMediaPlayer != null && mMediaPlayer.isPlaying())
+        if (item.IsRadio() == false && mMediaPlayer != null && mMediaPlayer.isPlaying())
         {
-            SavePosition();
+            SavePosition(item);
             mMediaPlayer.stop();
         }
     }
@@ -95,7 +95,15 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mMediaPlayer.setOnPreparedListener(this);
+
+        mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+        {
+            @Override
+            public void onPrepared(MediaPlayer player) {
+                mMediaPlayer.seekTo(GetPosition(item));
+            }
+        });
+
         mMediaPlayer.setOnBufferingUpdateListener(this);
 
         if (item.IsRadio() == false) {
@@ -121,10 +129,7 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         mMediaPlayer.prepareAsync();
     }
 
-    public void onPrepared(MediaPlayer player) {
-        mMediaPlayer.seekTo(GetPosition());
-        //mMediaPlayer.start();
-    }
+
 
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
@@ -132,19 +137,18 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         }
     }
 
-    private void SavePosition()
+    private void SavePosition(RssItem item)
     {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
 
         SharedPreferences.Editor editor = pref.edit();
-        editor.putInt(mContext.getString(R.string.pref_position), mMediaPlayer.getCurrentPosition());
+        editor.putInt(Utilities.GetSavedPositionKey(item), mMediaPlayer.getCurrentPosition());
         editor.commit();
     }
 
-    private int GetPosition() {
+    private int GetPosition(RssItem item) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-
-        return pref.getInt(mContext.getString(R.string.pref_position), 0);
+        return pref.getInt(Utilities.GetSavedPositionKey(item), 0);
     }
 
 }
