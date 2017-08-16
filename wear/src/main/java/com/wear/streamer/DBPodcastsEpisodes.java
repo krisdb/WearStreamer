@@ -7,20 +7,22 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.List;
 
-public class DBPodcasts extends SQLiteOpenHelper
+public class DBPodcastsEpisodes extends SQLiteOpenHelper
 {
-    public DBPodcasts(final Context context) {
-        super(context, "Podcasts", null, 1);
+    public DBPodcastsEpisodes(final Context context) {
+        super(context, "Episodes", null, 1);
     }
 
     public void onCreate(final SQLiteDatabase db)
     {
         final StringBuilder sbCreate = new StringBuilder();
-        sbCreate.append("create table [tbl_podcasts] (");
+        sbCreate.append("create table [tbl_podcast_episodes] (");
         sbCreate.append("[id] INTEGER primary key AUTOINCREMENT,");
+        sbCreate.append("[pid] INTEGER not null,");
         sbCreate.append("[title] TEXT not null,");
         sbCreate.append("[url] TEXT not null,");
         sbCreate.append("[description] TEXT null,");
+        sbCreate.append("[mediaurl] TEXT null,");
         sbCreate.append("[dateAdded] DATETIME not null");
         sbCreate.append(");");
 
@@ -29,7 +31,7 @@ public class DBPodcasts extends SQLiteOpenHelper
 
     @Override
     public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-        db.execSQL("DROP TABLE [tbl_podcasts]");
+        db.execSQL("DROP TABLE [tbl_podcast_episodes]");
         onCreate(db);
     }
 
@@ -39,18 +41,21 @@ public class DBPodcasts extends SQLiteOpenHelper
     }
 
 
-    public void insert(final List<PodcastItem> podcasts)
+    public void insert(final List<PodcastItem> episodes)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
         //db.beginTransaction();
 
-        for(PodcastItem podcast : podcasts) {
+        for(PodcastItem episode : episodes) {
             ContentValues cv = new ContentValues();
-            cv.put("title", podcast.getTitle());
-            cv.put("url", podcast.getUrl().toString());
+            cv.put("pid", episode.getPodcastId());
+            cv.put("title", episode.getTitle());
+            if (episode.getMediaUrl() != null)
+                cv.put("mediaurl", episode.getMediaUrl().toString());
+            cv.put("url", episode.getUrl().toString());
             cv.put("dateAdded", Utilities.GetDate());
 
-            db.insert("tbl_podcasts", null, cv);
+            db.insert("tbl_podcast_episodes", null, cv);
         }
         //db.endTransaction();
         db.close();
@@ -59,14 +64,14 @@ public class DBPodcasts extends SQLiteOpenHelper
     public void insert(final ContentValues cv)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.insert("tbl_podcasts", null, cv);
+        db.insert("tbl_podcast_episodes", null, cv);
         db.close();
     }
 
     public void deleteAll()
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.delete("tbl_podcasts", null, null);
+        db.delete("tbl_podcast_episodes", null, null);
         db.close();
     }
 
@@ -74,21 +79,21 @@ public class DBPodcasts extends SQLiteOpenHelper
     {
         final SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete("tbl_podcasts","[id] = ?", new String[] { id.toString() });
+        db.delete("tbl_podcast_episodes","[id] = ?", new String[] { id.toString() });
         db.close();
     }
 
     public void update(final ContentValues cv, final Integer itemId)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.update("tbl_podcasts", cv, "[id] = ?", new String[] { itemId.toString() });
+        db.update("tbl_podcast_episodes", cv, "[id] = ?", new String[] { itemId.toString() });
         db.close();
     }
 
     public void updateAll(final ContentValues cv)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.update("tbl_podcasts", cv, null, null);
+        db.update("tbl_podcast_episodes", cv, null, null);
         db.close();
     }
 }

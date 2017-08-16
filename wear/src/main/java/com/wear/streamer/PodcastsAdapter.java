@@ -18,7 +18,7 @@ import java.util.List;
 
 public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapter.ViewHolder> {
 
-    private List<RssItem> mItems;
+    private List<PodcastItem> mItems;
     private Context mContext;
 
     public static class ViewHolder extends WearableRecyclerView.ViewHolder {
@@ -34,7 +34,7 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
         public String toString() { return (String) mTextView.getText(); }
     }
 
-    public PodcastsAdapter(Context context, List<RssItem> items) {
+    public PodcastsAdapter(Context context, List<PodcastItem> items) {
         mItems = items;
         mContext = context;
     }
@@ -49,7 +49,7 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
     @Override
     public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
 
-        final RssItem item = mItems.get(position);
+        final PodcastItem item = mItems.get(position);
 
         viewHolder.mTextView.setOnClickListener(new View.OnClickListener() {
 
@@ -57,7 +57,7 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, PodcastEpisodesActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("url", item.getLink().toString());
+                bundle.putInt("pid", item.getPodcastId());
                 intent.putExtras(bundle);
 
                 mContext.startActivity(intent);
@@ -74,9 +74,9 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new DBPodcasts(mContext).delete(item.getId());
+                        new DBPodcasts(mContext).delete(item.getPodcastId());
                         mItems.clear();
-                        mItems = Utilities.GetPodcasts(mContext);
+                        mItems = DBUtilities.GetPodcasts(mContext);
                         notifyDataSetChanged();
                         dialog.dismiss();
 

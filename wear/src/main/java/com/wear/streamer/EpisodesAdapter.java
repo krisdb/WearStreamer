@@ -20,7 +20,7 @@ import java.util.List;
 
 public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapter.ViewHolder> implements MediaPlayer.OnBufferingUpdateListener  {
 
-    private List<RssItem> mItems;
+    private List<PodcastItem> mEpisodes;
     private MediaPlayer mMediaPlayer;
     private Context mContext;
 
@@ -37,8 +37,8 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         public String toString() { return (String) mTextView.getText(); }
     }
 
-    public EpisodesAdapter(Context context, List<RssItem> items, MediaPlayer mp) {
-        mItems = items;
+    public EpisodesAdapter(Context context, List<PodcastItem> episodes, MediaPlayer mp) {
+        mEpisodes = episodes;
         mMediaPlayer = mp;
         mContext = context;
     }
@@ -53,45 +53,55 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
     @Override
     public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
 
-        final RssItem item = mItems.get(position);
+        final PodcastItem episode = mEpisodes.get(position);
 
         viewHolder.mTextView.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
                 if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-                    StopStream(item);
+                    StopStream(episode);
                     viewHolder.mTextView.setTypeface(null, Typeface.NORMAL);
                 } else {
-                    StartSteam(viewHolder.mTextView, item);
+                    StartSteam(viewHolder.mTextView, episode);
                     viewHolder.mTextView.setText("Loading...");
                 }
             }
         });
 
-        viewHolder.mTextView.setText(item.getTitle());
+        viewHolder.mTextView.setText(episode.getTitle());
     }
 
     @Override
     public int getItemCount() {
-        return mItems.size();
+        return mEpisodes.size();
     }
 
-    private void StopStream(RssItem item)
+    private void StopStream(PodcastItem episode)
     {
-        if (item.IsRadio() == false && mMediaPlayer != null && mMediaPlayer.isPlaying())
+        //if (episode.IsRadio() == false && mMediaPlayer != null && mMediaPlayer.isPlaying())
+        if (mMediaPlayer != null && mMediaPlayer.isPlaying())
         {
-            SavePosition(item);
+            SavePosition(episode);
             mMediaPlayer.stop();
         }
     }
 
-    private void StartSteam(final TextView tv, final RssItem item) {
+    private void StartSteam(final TextView tv, final PodcastItem episode) {
+
+        if (episode.getMediaUrl() == null)
+        {
+            tv.setText(episode.getTitle());
+            tv.setTypeface(null, Typeface.NORMAL);
+            Toast.makeText(mContext, "Episode not available", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         try {
-            mMediaPlayer.setDataSource(item.getMedia().toString());
+            mMediaPlayer.setDataSource(episode.getMediaUrl().toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -100,27 +110,27 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         {
             @Override
             public void onPrepared(MediaPlayer player) {
-                mMediaPlayer.seekTo(GetPosition(item));
+                mMediaPlayer.seekTo(GetPosition(episode));
             }
         });
 
         mMediaPlayer.setOnBufferingUpdateListener(this);
 
-        if (item.IsRadio() == false) {
+        //if (episode.IsRadio() == false) {
             mMediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                 public void onSeekComplete(MediaPlayer mp) {
                     SystemClock.sleep(200);
                     mMediaPlayer.start();
-                    tv.setText(item.getTitle());
+                    tv.setText(episode.getTitle());
                     tv.setTypeface(null, Typeface.BOLD);
                 }
             });
-        }
+        //}
 
         mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                tv.setText(item.getTitle());
+                tv.setText(episode.getTitle());
                 tv.setTypeface(null, Typeface.NORMAL);
                 Toast.makeText(mContext, "Error", Toast.LENGTH_SHORT).show();
                 return true;
@@ -129,26 +139,24 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
         mMediaPlayer.prepareAsync();
     }
 
-
-
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
         if (percent < 0 || percent > 100) {
         }
     }
 
-    private void SavePosition(RssItem item)
+    private void SavePosition(PodcastItem episode)
     {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
 
         SharedPreferences.Editor editor = pref.edit();
-        editor.putInt(Utilities.GetSavedPositionKey(item), mMediaPlayer.getCurrentPosition());
+        editor.putInt(Utilities.GetSavedPositionKey(episode), mMediaPlayer.getCurrentPosition());
         editor.commit();
     }
 
-    private int GetPosition(RssItem item) {
+    private int GetPosition(PodcastItem episode) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-        return pref.getInt(Utilities.GetSavedPositionKey(item), 0);
+        return pref.getInt(Utilities.GetSavedPositionKey(episode), 0);
     }
 
 }

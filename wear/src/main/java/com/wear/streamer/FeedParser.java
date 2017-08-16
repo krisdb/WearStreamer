@@ -1,5 +1,8 @@
 package com.wear.streamer;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -12,18 +15,19 @@ import java.util.List;
 
 public class FeedParser {
 
-    public static List<RssItem> parse(final String url) {
-        final List<RssItem> items = new ArrayList<>();
+    public static void parse(Context ctx, final PodcastItem podcast) {
+        final List<PodcastItem> episodes = new ArrayList<>();
 
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(false);
             XmlPullParser parser = factory.newPullParser();
-            InputStream stream = new URL(url).openConnection().getInputStream();
+            InputStream stream = new URL(podcast.getUrl().toString()).openConnection().getInputStream();
             parser.setInput(stream, "UTF-8");
             boolean done = false;
 
-            RssItem item = new RssItem();
+            ContentValues cv = new ContentValues();
+            PodcastItem episode = new PodcastItem();
             int eventType = parser.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT && !done) {
                 String name;
@@ -33,23 +37,32 @@ public class FeedParser {
                     case XmlPullParser.START_TAG:
                         name = parser.getName();
                         if (name.equalsIgnoreCase("item")) {
-                            item = new RssItem();
-                        } else if (item != null) {
+                            //cv = new ContentValues();
+                            episode = new PodcastItem();
+                        } else if (cv != null ) {
                             if (name.equalsIgnoreCase("link")) {
-                                item.setLink(parser.nextText());
+                                //cv.put("url", parser.nextText());
+                                episode.setUrl(parser.nextText());
                             } else if (name.equalsIgnoreCase("description")) {
-                                item.setDescription(parser.nextText().trim());
+                                episode.setDescription(parser.nextText().trim());
+                                //cv.put("description", parser.nextText());
                             } else if (name.equalsIgnoreCase("title")) {
-                                item.setTitle(parser.nextText().trim());
+                                //cv.put("title", parser.nextText());
+                                episode.setTitle(parser.nextText().trim());
                             } else if (name.equalsIgnoreCase("enclosure")) {
-                                item.setMedia(parser.getAttributeValue(null, "url"));
+                                //cv.put("mediaurl", parser.getAttributeValue(null, "url"));
+                                episode.setMediaUrl(parser.getAttributeValue(null, "url"));
                             }
                         }
                         break;
                     case XmlPullParser.END_TAG:
                         name = parser.getName();
-                        if (name.equalsIgnoreCase("item") && item != null) {
-                            items.add(item);
+                        if (name.equalsIgnoreCase("item") && cv != null) {
+                            //cv.put("dateAdded", Utilities.GetDate());
+                            //cv.put("pid", podcast.getPodcastId());
+                            //new DBPodcastsEpisodes(ctx).insert(cv);
+                            episode.setPodcastId(podcast.getPodcastId());
+                            episodes.add(episode);
                         } else if (name.equalsIgnoreCase("channel")) {
                             done = true;
                         }
@@ -58,9 +71,10 @@ public class FeedParser {
                 eventType = parser.next();
             }
         } catch (Exception e) {
-
+            Log.e(ctx.getPackageName(), e.toString());
         }
 
-        return items;
+        new DBPodcastsEpisodes(ctx).insert(episodes);
+        //return items;
     }
 }

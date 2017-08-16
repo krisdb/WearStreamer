@@ -14,7 +14,7 @@ public class PodcastEpisodesActivity extends Activity{
 
     private MediaPlayer mMediaPlayer = null;
     private WearableRecyclerView mMediaList = null;
-    private List<RssItem> mPodcasts = null;
+    private List<PodcastItem> mEpisodes = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,35 +27,15 @@ public class PodcastEpisodesActivity extends Activity{
         mMediaList.setBezelWidth(0.5f);
         mMediaList.setScrollDegreesPerScreen(90);
 
-        new GetPodcasts(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getIntent().getExtras().getString("url"));
-    }
-
-    private class GetPodcasts extends AsyncTask<String, Void, Void>
-    {
-        private Context mContext;
-
-        public GetPodcasts(final Context context) {
-            mContext = context;
-        }
-
-        @Override
-        protected Void doInBackground(String... url) {
-            mPodcasts = FeedParser.parse(url[0]);
-            return null;
-        }
-
-        protected void onPostExecute(Void param)
+        mEpisodes = DBUtilities.GetEpisodes(this, this.getIntent().getExtras().getInt("pid"));
+        if (mEpisodes.size() > 0)
         {
-            if (mPodcasts.size() > 0)
-            {
-                mMediaList.setAdapter(new EpisodesAdapter(mContext, mPodcasts, mMediaPlayer));
-                findViewById(R.id.empty_podcast_episodes).setVisibility(TextView.GONE);
-            }
-            else
-            {
-                findViewById(R.id.empty_podcast_episodes).setVisibility(TextView.VISIBLE);
-            }
+            mMediaList.setAdapter(new EpisodesAdapter(this, mEpisodes, mMediaPlayer));
+            findViewById(R.id.empty_podcast_episodes).setVisibility(TextView.GONE);
+        }
+        else
+        {
+            findViewById(R.id.empty_podcast_episodes).setVisibility(TextView.VISIBLE);
         }
     }
-
 }

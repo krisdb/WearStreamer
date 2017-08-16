@@ -14,7 +14,7 @@ public class RadioActivity extends Activity{
 
     private MediaPlayer mMediaPlayer = null;
     private WearableRecyclerView mMediaList = null;
-    private List<RssItem> mStations = new ArrayList<>();
+    private List<PodcastItem> mStations = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,30 +40,30 @@ public class RadioActivity extends Activity{
 
         @Override
         protected Void doInBackground(Void... params) {
-            RssItem item = new RssItem();
+/*            PodcastItem item = new PodcastItem();
             item.setTitle("BBC");
-            item.setMedia("http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio2_mf_p");
+            item.setMediaUrl("http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio2_mf_p");
             item.setIsRadio(true);
             mStations.add(item);
 
             item = new RssItem();
             item.setTitle("ABC News");
-            item.setMedia("http://www.abc.net.au/res/streaming/audio/mp3/news_radio.pls");
+            item.setMediaUrl("http://www.abc.net.au/res/streaming/audio/mp3/news_radio.pls");
             item.setIsRadio(true);
             mStations.add(item);
 
             item = new RssItem();
             item.setTitle("NPR");
-            item.setMedia("http://stream.radiosai.net:8002/");
+            item.setMediaUrl("http://stream.radiosai.net:8002/");
             item.setIsRadio(true);
-            mStations.add(item);
+            mStations.add(item);*/
             return null;
         }
 
         protected void onPostExecute(Void param)
         {
-            EpisodesAdapter adapter = new EpisodesAdapter(mContext, mStations, mMediaPlayer);
-            mMediaList.setAdapter(adapter);
+            //EpisodesAdapter adapter = new EpisodesAdapter(mContext, mStations, mMediaPlayer);
+            //mMediaList.setAdapter(adapter);
         }
     }
 

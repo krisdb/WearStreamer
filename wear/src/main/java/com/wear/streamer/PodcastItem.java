@@ -6,7 +6,8 @@ import java.net.URL;
 public class PodcastItem implements Comparable<PodcastItem>
 {
     private String title, description, date;
-    private URL link;
+    private URL url, mediaurl;
+    private int pid, eid;
 
     public String getTitle() {
         return title;
@@ -16,20 +17,44 @@ public class PodcastItem implements Comparable<PodcastItem>
         this.title = title.trim();
     }
 
-    public URL getLink() {
-        return link;
+    public URL getUrl() {
+        return url;
     }
 
-    public void setLink(final String link) {
+    public void setUrl(final String url) {
         try
         {
-            this.link = new URL(link);
+            this.url = new URL(url);
         }
         catch (MalformedURLException e)
         {
             throw new RuntimeException(e);
         }
     }
+
+    public URL getMediaUrl() {
+        return mediaurl;
+    }
+
+    public void setMediaUrl(final String url) {
+        try
+        {
+            this.mediaurl = new URL(url);
+        }
+        catch (MalformedURLException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+    public int getPodcastId() { return pid; }
+
+    public void setPodcastId(final int id) { this.pid = id; }
+
+    public int getEpisodeId() { return eid; }
+
+    public void setEpisodeId(final int id) { this.eid = id; }
+
+
 
     public String getDescription() {
         return description;

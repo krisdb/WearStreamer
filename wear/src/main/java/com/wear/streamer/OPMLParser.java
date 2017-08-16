@@ -36,7 +36,7 @@ public class OPMLParser {
                                     if (xpp.getAttributeValue(null, "text") != null && xpp.getAttributeValue(null, "xmlUrl") != null) {
                                         item = new PodcastItem();
                                         item.setTitle(xpp.getAttributeValue(null, "text"));
-                                        item.setLink(xpp.getAttributeValue(null, "xmlUrl"));
+                                        item.setUrl(xpp.getAttributeValue(null, "xmlUrl"));
                                         items.add(item);
                                     }
                                 }

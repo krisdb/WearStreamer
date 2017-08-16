@@ -17,7 +17,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), PodcastsActivity.class));
+                startActivity(new Intent(getApplicationContext(), PodcastsListActivity.class));
             }
         });
 
