@@ -32,6 +32,7 @@
         <activity android:name=".SettingsPodcastsActivity" />
         <activity android:name=".RadioActivity" />
         <service android:name=".BackgroundService" />
+        <service android:name=".MediaPlayerService" />
         <service android:name=".ImportService">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
