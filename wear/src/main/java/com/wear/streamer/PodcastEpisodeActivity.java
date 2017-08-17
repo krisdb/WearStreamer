@@ -23,6 +23,7 @@ public class PodcastEpisodeActivity extends Activity implements MediaPlayer.OnBu
     private MediaPlayer mMediaPlayer;
     private PodcastItem mEpisode;
     private Button mPlayButton;
+    private static final WearSteamerSingelton wearitems = WearSteamerSingelton.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +39,7 @@ public class PodcastEpisodeActivity extends Activity implements MediaPlayer.OnBu
 
         mPlayButton = ((Button)findViewById(R.id.btn_podcast_play));
 
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            mPlayButton.setText("Pause");
-        }
+        wearitems.MediaPlayer = new MediaPlayer();
 
         mPlayButton.setOnClickListener(new View.OnClickListener() {
 
@@ -50,15 +49,35 @@ public class PodcastEpisodeActivity extends Activity implements MediaPlayer.OnBu
                     StopPodcast();
                     SavePosition();
                 } else {
+                    mMediaPlayer.reset();
                     StartPodcast();
                 }
             }
         });
     }
 
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mMediaPlayer != null)
+        {
+            SavePosition();
+            //mMediaPlayer.release();
+        }
+    }
+
+    protected void onStart() {
+        super.onStart();
+
+        mMediaPlayer = wearitems.MediaPlayer;
+
+        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+            mPlayButton.setText("Pause");
+        }
+    }
+
     private void StartPodcast() {
         try {
-            mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setOnBufferingUpdateListener(this);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
@@ -86,7 +105,9 @@ public class PodcastEpisodeActivity extends Activity implements MediaPlayer.OnBu
                     return true;
                 }
             });
+
             mMediaPlayer.prepareAsync();
+
         } catch (IOException e) {
             Log.e(getPackageName(), e.toString());
         }
@@ -96,7 +117,9 @@ public class PodcastEpisodeActivity extends Activity implements MediaPlayer.OnBu
 
     private void StopPodcast() {
 
-        mMediaPlayer.stop();
+        if (mMediaPlayer.isPlaying())
+            mMediaPlayer.stop();
+
         mPlayButton.setText("Play");
     }
 
@@ -115,10 +138,15 @@ public class PodcastEpisodeActivity extends Activity implements MediaPlayer.OnBu
 
         final Cursor cursor = sdb.rawQuery("SELECT [position] FROM [tbl_podcast_episodes] WHERE [id] = ?", new String[] { String.valueOf(mEpisode.getEpisodeId()) });
 
+        int position = 0;
+
         if (cursor.moveToFirst())
-            return cursor.getInt(0);
-        else
-            return 0;
+            position = cursor.getInt(0);
+
+        cursor.close();
+        db.close();
+
+        return position;
     }
 
     @Override

@@ -26,6 +26,7 @@ public class FeedParser {
             parser.setInput(stream, "UTF-8");
             boolean done = false;
 
+            Log.d(ctx.getPackageName(), "Parsing " + podcast.getUrl());
             ContentValues cv = new ContentValues();
             PodcastItem episode = new PodcastItem();
             int eventType = parser.getEventType();

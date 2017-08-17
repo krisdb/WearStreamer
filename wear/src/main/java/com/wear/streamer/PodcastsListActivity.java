@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -56,6 +57,11 @@ public class PodcastsListActivity extends Activity{
         }
 
         StartAlarm();
+
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if ( prefs.getBoolean("syncOnStart", true))
+            new SyncPodcasts(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     private void StartAlarm()

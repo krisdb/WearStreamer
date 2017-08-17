@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
         <PreferenceCategory android:title="Settings">
 
             <Preference android:key="pref_sync_podcasts" android:title="Click to sync podcasts" />
+
+            <CheckBoxPreference
+                android:key="syncOnStart"
+                android:title="Sync on startup"
+                android:defaultValue="true"
+                />
 
             <CheckBoxPreference
                 android:key="updatesEnabled"
@@ -19,5 +25,6 @@
                 android:entryValues="@array/interval_values"
                 android:defaultValue="@integer/default_update_interval"
                 />
+
         </PreferenceCategory>
     </PreferenceScreen>

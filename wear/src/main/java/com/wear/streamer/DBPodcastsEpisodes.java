@@ -10,7 +10,7 @@ import java.util.List;
 public class DBPodcastsEpisodes extends SQLiteOpenHelper
 {
     public DBPodcastsEpisodes(final Context context) {
-        super(context, "Episodes", null, 1);
+        super(context, "Episodes", null, 2);
     }
 
     public void onCreate(final SQLiteDatabase db)
@@ -23,9 +23,11 @@ public class DBPodcastsEpisodes extends SQLiteOpenHelper
         sbCreate.append("[url] TEXT not null,");
         sbCreate.append("[description] TEXT null,");
         sbCreate.append("[mediaurl] TEXT null,");
+        sbCreate.append("[duration] INTEGER null,");
         sbCreate.append("[position] INTEGER not null DEFAULT 0,");
         sbCreate.append("[finished] INTEGER not null DEFAULT 0,");
         sbCreate.append("[read] INTEGER not null DEFAULT 0,");
+        sbCreate.append("[episodeDate] DATETIME null,");
         sbCreate.append("[dateAdded] DATETIME not null DEFAULT (DATETIME(\'now\'))");
         sbCreate.append(");");
 

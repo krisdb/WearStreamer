@@ -4,24 +4,17 @@ package com.wear.streamer;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
-
-import java.util.List;
+import android.widget.TextView;
 
 import static android.content.Context.ALARM_SERVICE;
 
@@ -37,20 +30,10 @@ public class SettingsPodcastsFragment extends PreferenceFragment implements Shar
 
         mActivity = getActivity();
 
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mActivity);
-        final Boolean updatesEnabled = prefs.getBoolean("updatesEnabled", true);
-
-        final CheckBoxPreference cbUpdatesEnabled = (CheckBoxPreference)getPreferenceScreen().findPreference("updatesEnabled");
-        cbUpdatesEnabled.setChecked(updatesEnabled);
-
-        final ListPreference lpUpdateInterval = (ListPreference)getPreferenceScreen().findPreference("updateInterval");
-        lpUpdateInterval.setValue(prefs.getString("updateInterval", String.valueOf(mActivity.getResources().getInteger(R.integer.default_update_interval))));
-        lpUpdateInterval.setEnabled(updatesEnabled);
-
         findPreference("pref_sync_podcasts").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
 
-                new GetPodcasts(getActivity()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                new SyncPodcasts(mActivity).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 return false;
             }
         });
@@ -103,37 +86,6 @@ public class SettingsPodcastsFragment extends PreferenceFragment implements Shar
             Log.d(mActivity.getPackageName(), "Alarm Started");
 
             alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + updateInterval, updateInterval, pendingIntent);
-        }
-    }
-
-    private class GetPodcasts extends AsyncTask<Void, Void, Void>
-    {
-        private Context mContext;
-
-        public GetPodcasts(final Context context) {
-            mContext = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            new DBPodcastsEpisodes(mContext).deleteAll();
-            Toast.makeText(mContext, "Syncing started", Toast.LENGTH_LONG).show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            List<PodcastItem> podcasts = DBUtilities.GetPodcasts(mContext);
-
-            for (PodcastItem podcast : podcasts)
-                FeedParser.parse(mContext, podcast);
-
-            return null;
-        }
-
-        protected void onPostExecute(Void param)
-        {
-            Toast.makeText(mContext, "Syncing finished", Toast.LENGTH_LONG).show();
         }
     }
 }
