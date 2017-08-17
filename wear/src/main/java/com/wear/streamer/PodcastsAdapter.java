@@ -4,9 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.wearable.view.WearableRecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,7 +53,7 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
 
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(mContext, PodcastEpisodesActivity.class);
+                Intent intent = new Intent(mContext, PodcastEpisodesListActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putInt("pid", item.getPodcastId());
                 intent.putExtras(bundle);

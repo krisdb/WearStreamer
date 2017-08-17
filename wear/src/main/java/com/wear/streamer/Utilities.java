@@ -23,9 +23,4 @@ public class Utilities {
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
         return df.format(c.getTime());
     }
-
-    public static String GetSavedPositionKey(PodcastItem episode)
-    {
-        return "position_" + episode.getEpisodeId();
-    }
 }

@@ -19,5 +19,4 @@ public class SettingsPodcastsActivity extends PreferenceActivity {
         mFragmentTransaction.replace(android.R.id.content, mPrefsFragment);
         mFragmentTransaction.commit();
     }
-
 }

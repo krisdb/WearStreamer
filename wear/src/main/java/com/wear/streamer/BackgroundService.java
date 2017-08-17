@@ -39,6 +39,7 @@ public class BackgroundService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
         final Context ctx = getApplicationContext();
 
+        Log.d(mPackage, "Service Started");
         getLock(ctx).acquire();
 
         try {

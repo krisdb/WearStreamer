@@ -39,14 +39,35 @@ public class DBUtilities {
         return podcasts;
     }
 
-    public static List<PodcastItem> GetEpisodes(Context ctx, int episodeId)
+    public static PodcastItem GetEpisode(Context ctx, int episodeId)
+    {
+        PodcastItem episode = new PodcastItem();
+
+        final DBPodcastsEpisodes db = new DBPodcastsEpisodes(ctx);
+        final SQLiteDatabase sdb = db.select();
+
+        final Cursor cursor = sdb.rawQuery("SELECT id,title,description,mediaurl FROM [tbl_podcast_episodes] WHERE id = ?", new String[] { String.valueOf(episodeId) });
+
+        if (cursor.moveToFirst()) {
+            episode.setEpisodeId(cursor.getInt(0));
+            episode.setTitle(cursor.getString(1));
+            episode.setDescription(cursor.getString(2));
+            episode.setMediaUrl(cursor.getString(3));
+        }
+        cursor.close();
+        db.close();
+
+        return episode;
+    }
+
+    public static List<PodcastItem> GetEpisodes(Context ctx, int podcastId)
     {
         List<PodcastItem> podcasts = new ArrayList<>();
 
         final DBPodcastsEpisodes db = new DBPodcastsEpisodes(ctx);
         final SQLiteDatabase sdb = db.select();
 
-        final Cursor cursor = sdb.rawQuery("SELECT id,title,url,mediaurl FROM [tbl_podcast_episodes] WHERE pid = ?", new String[] { String.valueOf(episodeId) });
+        final Cursor cursor = sdb.rawQuery("SELECT id,title,url,mediaurl FROM [tbl_podcast_episodes] WHERE pid = ?", new String[] { String.valueOf(podcastId) });
 
         if (cursor.moveToFirst())
         {

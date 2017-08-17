@@ -21,7 +21,14 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".PodcastEpisodesActivity" />
+        <receiver android:name=".AlarmReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".PodcastEpisodeActivity" />
+        <activity android:name=".PodcastEpisodesListActivity" />
         <activity android:name=".SettingsPodcastsActivity" />
         <activity android:name=".RadioActivity" />
         <service android:name=".BackgroundService" />

@@ -23,7 +23,10 @@ public class DBPodcastsEpisodes extends SQLiteOpenHelper
         sbCreate.append("[url] TEXT not null,");
         sbCreate.append("[description] TEXT null,");
         sbCreate.append("[mediaurl] TEXT null,");
-        sbCreate.append("[dateAdded] DATETIME not null");
+        sbCreate.append("[position] INTEGER not null DEFAULT 0,");
+        sbCreate.append("[finished] INTEGER not null DEFAULT 0,");
+        sbCreate.append("[read] INTEGER not null DEFAULT 0,");
+        sbCreate.append("[dateAdded] DATETIME not null DEFAULT (DATETIME(\'now\'))");
         sbCreate.append(");");
 
         db.execSQL(sbCreate.toString());
@@ -50,6 +53,7 @@ public class DBPodcastsEpisodes extends SQLiteOpenHelper
             ContentValues cv = new ContentValues();
             cv.put("pid", episode.getPodcastId());
             cv.put("title", episode.getTitle());
+            cv.put("description", episode.getDescription());
             if (episode.getMediaUrl() != null)
                 cv.put("mediaurl", episode.getMediaUrl().toString());
             cv.put("url", episode.getUrl().toString());
@@ -83,10 +87,10 @@ public class DBPodcastsEpisodes extends SQLiteOpenHelper
         db.close();
     }
 
-    public void update(final ContentValues cv, final Integer itemId)
+    public void update(final ContentValues cv, final Integer id)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.update("tbl_podcast_episodes", cv, "[id] = ?", new String[] { itemId.toString() });
+        db.update("tbl_podcast_episodes", cv, "[id] = ?", new String[] { id.toString() });
         db.close();
     }
 

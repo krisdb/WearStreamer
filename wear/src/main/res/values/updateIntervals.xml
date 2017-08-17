@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="updateInterval">Update Interval</string>
+    <string-array name="interval_text">
+        <item>1 minute</item>
+        <item>1 hour</item>
+        <item>3 hour</item>
+        <item>6 hours</item>
+        <item>12 hours</item>
+    </string-array>
+
+    <string-array name="interval_values">
+        <item>6000</item> <!-- 1 minute -->
+        <item>3600000</item> <!-- 1 hour -->
+        <item>10800000</item> <!-- 3 hour -->
+        <item>21600000</item> <!-- 6 hours -->
+        <item>43200000</item> <!-- 12 hours -->
+    </string-array>
+</resources>

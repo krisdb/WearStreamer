@@ -10,9 +10,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class PodcastEpisodesActivity extends Activity{
+public class PodcastEpisodesListActivity extends Activity{
 
-    private MediaPlayer mMediaPlayer = null;
     private WearableRecyclerView mMediaList = null;
     private List<PodcastItem> mEpisodes = null;
 
@@ -28,9 +27,10 @@ public class PodcastEpisodesActivity extends Activity{
         mMediaList.setScrollDegreesPerScreen(90);
 
         mEpisodes = DBUtilities.GetEpisodes(this, this.getIntent().getExtras().getInt("pid"));
+
         if (mEpisodes.size() > 0)
         {
-            mMediaList.setAdapter(new EpisodesAdapter(this, mEpisodes, mMediaPlayer));
+            mMediaList.setAdapter(new EpisodesAdapter(this, mEpisodes));
             findViewById(R.id.empty_podcast_episodes).setVisibility(TextView.GONE);
         }
         else

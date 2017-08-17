@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.wearable.view.WearableRecyclerView;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -26,13 +27,13 @@ public class PodcastsListActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.round_activity_podcast_list);
 
-        mMediaList = (WearableRecyclerView)findViewById(R.id.podcast_list);
+        mMediaList = (WearableRecyclerView) findViewById(R.id.podcast_list);
 
         mMediaList.setCircularScrollingGestureEnabled(true);
         mMediaList.setBezelWidth(0.5f);
         mMediaList.setScrollDegreesPerScreen(90);
 
-        RelativeLayout layout = (RelativeLayout)findViewById(R.id.podcast_list_layout);
+        RelativeLayout layout = (RelativeLayout) findViewById(R.id.podcast_list_layout);
 
         layout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -45,48 +46,17 @@ public class PodcastsListActivity extends Activity{
 
         });
 
+        mPodcasts = DBUtilities.GetPodcasts(this);
 
-        new GetPodcasts(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        if (mPodcasts.size() > 0) {
+            mMediaList.setAdapter(new PodcastsAdapter(this, mPodcasts));
+            findViewById(R.id.empty_podcast_list).setVisibility(TextView.GONE);
+        } else {
+            findViewById(R.id.empty_podcast_list).setVisibility(TextView.VISIBLE);
+        }
+
         StartAlarm();
-
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        new GetPodcasts(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    private class GetPodcasts extends AsyncTask<Void, Void, Void>
-    {
-        private Context mContext;
-
-        public GetPodcasts(final Context context) {
-            mContext = context;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            mPodcasts = DBUtilities.GetPodcasts(mContext);
-
-            return null;
-        }
-
-        protected void onPostExecute(Void param)
-        {
-            if (mPodcasts.size() > 0)
-            {
-                mMediaList.setAdapter(new PodcastsAdapter(mContext, mPodcasts));
-                findViewById(R.id.empty_podcast_list).setVisibility(TextView.GONE);
-            }
-            else
-            {
-                findViewById(R.id.empty_podcast_list).setVisibility(TextView.VISIBLE);
-            }
-        }
-    }
-
 
     private void StartAlarm()
     {
@@ -95,9 +65,14 @@ public class PodcastsListActivity extends Activity{
         final Intent myIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, myIntent, 0);
 
-        final Long updateInterval = Long.valueOf(30);
+        final Long updateInterval = Long.valueOf(getResources().getInteger(R.integer.default_update_interval));
 
-        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + updateInterval, updateInterval, pendingIntent);
+        alarmManager.setInexactRepeating(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + updateInterval,
+                updateInterval,
+                pendingIntent
+        );
     }
 
 }
