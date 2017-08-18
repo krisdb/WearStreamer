@@ -100,7 +100,7 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                                 .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                                     @Override
                                     public void onResult(DataApi.DataItemResult dataItemResult) {
-                                        Toast.makeText(getApplicationContext(), "Podcast added successfully", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getApplicationContext(), "Podcast added successfully. Restart watch app.", Toast.LENGTH_LONG).show();
                                         tvTitle.setText(null);
                                         tvLink.setText(null);
                                     }
@@ -142,7 +142,7 @@ public class PhoneMainActivity extends Activity implements GoogleApiClient.OnCon
                                 .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                                     @Override
                                     public void onResult(DataApi.DataItemResult dataItemResult) {
-                                        Toast.makeText(getApplicationContext(), "Podcasts imported successfully", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getApplicationContext(), "Podcasts imported successfully. Restart watch app.", Toast.LENGTH_LONG).show();
                                     }
                                 });
                     }

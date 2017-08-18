@@ -1,37 +1,35 @@
 package com.wear.streamer;
 
-import android.app.IntentService;
+import android.app.Service;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.Handler;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.List;
 
-public class MediaPlayerService extends IntentService implements MediaPlayer.OnBufferingUpdateListener {
-    private static volatile PowerManager.WakeLock mWakeLock = null;
+public class MediaPlayerService extends Service implements MediaPlayer.OnBufferingUpdateListener {
     private static String mPackage = null;
-    private Handler mHandler;
     private MediaPlayer mMediaPlayer;
     private PodcastItem mEpisode;
 
-
     public MediaPlayerService() {
-        super("MediaPlayerService");
+        super();
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Log.d(mPackage, "Media service created");
         mMediaPlayer = new MediaPlayer();
     }
 
@@ -40,17 +38,16 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnB
     {
         super.onStartCommand(intent, flags, startId);
 
-        mHandler = new Handler();
+        Log.d(mPackage, "Media service started");
 
         mPackage = getPackageName();
+        StartStream(intent.getExtras().getInt("id"));
+        return START_NOT_STICKY;
+    }
 
-        PowerManager.WakeLock lock = getLock(this.getApplicationContext());
 
-        if (!lock.isHeld())
-            lock.acquire();
-
-        int episodeId = intent.getExtras().getInt("id");
-
+    private void StartStream(int episodeId)
+    {
         mEpisode = DBUtilities.GetEpisode(this, episodeId);
 
         try {
@@ -58,12 +55,15 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnB
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
             mMediaPlayer.setDataSource(mEpisode.getMediaUrl().toString());
+            mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
             {
                 @Override
                 public void onPrepared(MediaPlayer player) {
-                    mMediaPlayer.seekTo(GetPosition());
+                    int position = GetPosition();
+                    Log.d(mPackage, "Current position: " + position);
+                    mMediaPlayer.seekTo(position);
                 }
             });
 
@@ -81,61 +81,22 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnB
                     return true;
                 }
             });
-
             mMediaPlayer.prepareAsync();
 
         } catch (IOException e) {
             Log.e(getPackageName(), e.toString());
         }
-        return START_NOT_STICKY;
-    }
-
-    @Override
-    protected void onHandleIntent(Intent workIntent) {
-        final Context ctx = getApplicationContext();
-
-        Log.d(mPackage, "Service Started");
-        getLock(ctx).acquire();
-
-        try {
-            List<PodcastItem> podcasts = DBUtilities.GetPodcasts(ctx);
-
-            for (PodcastItem podcast : podcasts)
-                FeedParser.parse(ctx, podcast);
-        } catch (Exception ex) {
-            Log.e(ctx.getPackageName(), ex.getMessage().toString());
-        } finally {
-            PowerManager.WakeLock lock = getLock(this.getApplicationContext());
-
-            if (lock.isHeld()) {
-                lock.release();
-            }
-        }
-    }
-
-    synchronized private static PowerManager.WakeLock getLock(final Context context)
-    {
-        if (mWakeLock == null) {
-
-            PowerManager mgr = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-
-            mWakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, mPackage);
-            mWakeLock.setReferenceCounted(true);
-        }
-
-        return(mWakeLock);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        Log.d(mPackage, "Media service destroyed");
+
         SavePosition();
-    }
-
-
-    @Override
-    public void onBufferingUpdate(MediaPlayer mp, int percent) {
-
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
     }
 
     private void SavePosition()
@@ -162,5 +123,15 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnB
         db.close();
 
         return position;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+
     }
 }

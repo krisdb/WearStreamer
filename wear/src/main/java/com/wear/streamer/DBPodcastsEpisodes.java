@@ -10,7 +10,7 @@ import java.util.List;
 public class DBPodcastsEpisodes extends SQLiteOpenHelper
 {
     public DBPodcastsEpisodes(final Context context) {
-        super(context, "Episodes", null, 2);
+        super(context, "Episodes", null, 1);
     }
 
     public void onCreate(final SQLiteDatabase db)
@@ -96,10 +96,10 @@ public class DBPodcastsEpisodes extends SQLiteOpenHelper
         db.close();
     }
 
-    public void updateAll(final ContentValues cv)
+    public void updateAll(final ContentValues cv, final Integer podcastId)
     {
         final SQLiteDatabase db = this.getWritableDatabase();
-        db.update("tbl_podcast_episodes", cv, null, null);
+        db.update("tbl_podcast_episodes", cv, "[pid] = ?", new String[] { podcastId.toString() });
         db.close();
     }
 }

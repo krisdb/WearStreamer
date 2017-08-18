@@ -72,7 +72,7 @@ public class EpisodesAdapter extends WearableRecyclerView.Adapter<EpisodesAdapte
             }
         });
 
-        viewHolder.mTextView.setText(episode.getTitle());
+        viewHolder.mTextView.setText(episode.getRead() ? episode.getTitle() : episode.getTitle() + " *");
     }
 
     @Override

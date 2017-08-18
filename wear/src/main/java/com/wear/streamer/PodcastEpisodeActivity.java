@@ -1,25 +1,15 @@
 package com.wear.streamer;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Typeface;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.text.Html;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.IOException;
 
 public class PodcastEpisodeActivity extends Activity {
 
@@ -32,14 +22,14 @@ public class PodcastEpisodeActivity extends Activity {
 
         PodcastItem episode = DBUtilities.GetEpisode(this, episodeId);
 
-        ((TextView)findViewById(R.id.podcast_episode_title)).setText(episode.getTitle());
+        ((TextView) findViewById(R.id.podcast_episode_title)).setText(episode.getTitle());
 
-        ((TextView)findViewById(R.id.podcast_episode_description)).setText(
+        ((TextView) findViewById(R.id.podcast_episode_description)).setText(
                 Html.fromHtml(episode.getDescription(),
                         Html.FROM_HTML_MODE_COMPACT
                 ));
 
-        final Button btnPlay = ((Button)findViewById(R.id.btn_podcast_play));
+        final Button btnPlay = ((Button) findViewById(R.id.btn_podcast_play));
 
         final Intent intent = new Intent(this, MediaPlayerService.class);
         intent.putExtra("id", episodeId);
@@ -48,20 +38,42 @@ public class PodcastEpisodeActivity extends Activity {
 
             @Override
             public void onClick(View view) {
-                if (btnPlay.getText() == "Play")
-                {
+                if (isMyServiceRunning(MediaPlayerService.class)) {
+                    stopService(intent);
+                    btnPlay.setText("Play");
+                } else {
                     startService(intent);
                     btnPlay.setText("Pause");
                 }
-                else
-                {
-                   stopService(intent);
-                    btnPlay.setText("Play");
-                }
-
-
             }
         });
+
+        if (episode.getMediaUrl() == null) {
+            btnPlay.setEnabled(false);
+            btnPlay.setText("Error");
+        }
+
+        ContentValues cv = new ContentValues();
+        cv.put("read",1);
+
+        new DBPodcastsEpisodes(this).update(cv, episodeId);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (isMyServiceRunning(MediaPlayerService.class))
+            ((Button)findViewById(R.id.btn_podcast_play)).setText("Pause");
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

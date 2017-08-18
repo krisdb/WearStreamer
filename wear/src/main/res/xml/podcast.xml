@@ -2,29 +2,29 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-        <PreferenceCategory android:title="Settings">
+    <PreferenceCategory android:title="Settings">
 
-            <Preference android:key="pref_sync_podcasts" android:title="Click to sync podcasts" />
+        <Preference android:key="pref_sync_podcasts" android:title="Click to sync podcasts" />
 
-            <CheckBoxPreference
-                android:key="syncOnStart"
-                android:title="Sync on startup"
-                android:defaultValue="true"
-                />
+        <CheckBoxPreference
+            android:key="syncOnStart"
+            android:title="Sync on startup"
+            android:defaultValue="false"
+            />
 
-            <CheckBoxPreference
-                android:key="updatesEnabled"
-                android:title="Enable Updates"
-                android:defaultValue="true"
-                />
+        <CheckBoxPreference
+            android:key="updatesEnabled"
+            android:title="Enable Updates"
+            android:defaultValue="true"
+            />
 
-            <ListPreference
-                android:key="updateInterval"
-                android:title="Update Interval"
-                android:entries="@array/interval_text"
-                android:entryValues="@array/interval_values"
-                android:defaultValue="@integer/default_update_interval"
-                />
+        <ListPreference
+            android:key="updateInterval"
+            android:title="Update Interval"
+            android:entries="@array/interval_text"
+            android:entryValues="@array/interval_values"
+            android:defaultValue="@integer/default_update_interval"
+            />
 
-        </PreferenceCategory>
-    </PreferenceScreen>
+    </PreferenceCategory>
+</PreferenceScreen>

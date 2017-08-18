@@ -3,8 +3,10 @@ package com.wear.streamer;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.util.List;
@@ -39,7 +41,7 @@ public class BackgroundService extends IntentService {
     protected void onHandleIntent(Intent workIntent) {
         final Context ctx = getApplicationContext();
 
-        Log.d(mPackage, "Service Started");
+        Log.d(mPackage, "Background service started");
         getLock(ctx).acquire();
 
         try {
@@ -69,5 +71,13 @@ public class BackgroundService extends IntentService {
         }
 
         return(mWakeLock);
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        Log.d(mPackage, "Background service destroyed");
     }
 }

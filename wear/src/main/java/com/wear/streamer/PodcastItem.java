@@ -1,5 +1,7 @@
 package com.wear.streamer;
 
+import android.util.Log;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -8,6 +10,17 @@ public class PodcastItem implements Comparable<PodcastItem>
     private String title, description, date;
     private URL url, mediaurl;
     private int pid, eid;
+    private boolean read;
+
+    public void setRead(final Boolean read)
+    {
+        this.read = read;
+    }
+
+    public Boolean getRead()
+    {
+        return read;
+    }
 
     public String getTitle() {
         return title;
@@ -43,7 +56,7 @@ public class PodcastItem implements Comparable<PodcastItem>
         }
         catch (MalformedURLException e)
         {
-            throw new RuntimeException(e);
+            Log.e("com.wear.streamer", e.toString());
         }
     }
     public int getPodcastId() { return pid; }

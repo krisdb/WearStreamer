@@ -1,6 +1,8 @@
 package com.wear.streamer;
 
 import android.content.ContentValues;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.Asset;
@@ -54,6 +56,15 @@ public class ImportService extends WearableListenerService {
 
                 new DBPodcasts(getApplicationContext()).insert(OPMLParser.parse(in));
             }
+        }
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (prefs.getInt("uploads", 0) == 0)
+        {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("uploads", 1);
+            editor.commit();
         }
     }
 

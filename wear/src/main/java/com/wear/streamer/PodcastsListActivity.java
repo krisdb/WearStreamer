@@ -58,9 +58,17 @@ public class PodcastsListActivity extends Activity{
 
         StartAlarm();
 
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        if ( prefs.getBoolean("syncOnStart", true))
+        if (prefs.getInt("uploads", 0) == 1 && DBUtilities.GetPodcasts(this).size() > 0) {
+            new SyncPodcasts(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("uploads", 2);
+            editor.commit();
+        }
+
+        if (prefs.getBoolean("syncOnStart", false))
             new SyncPodcasts(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 

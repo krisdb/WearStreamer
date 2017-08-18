@@ -47,7 +47,9 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
     @Override
     public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
 
-        final PodcastItem item = mItems.get(position);
+        final PodcastItem podcast = mItems.get(position);
+
+        final int podcastId = podcast.getPodcastId();
 
         viewHolder.mTextView.setOnClickListener(new View.OnClickListener() {
 
@@ -55,7 +57,7 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, PodcastEpisodesListActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putInt("pid", item.getPodcastId());
+                bundle.putInt("pid", podcastId);
                 intent.putExtras(bundle);
 
                 mContext.startActivity(intent);
@@ -72,7 +74,7 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new DBPodcasts(mContext).delete(item.getPodcastId());
+                        new DBPodcasts(mContext).delete(podcastId);
                         mItems.clear();
                         mItems = DBUtilities.GetPodcasts(mContext);
                         notifyDataSetChanged();
@@ -90,13 +92,15 @@ public class PodcastsAdapter extends WearableRecyclerView.Adapter<PodcastsAdapte
                 });
 
                 alert.show();
-
-
                 return false;
             }
         });
 
-        viewHolder.mTextView.setText(item.getTitle());
+        viewHolder.mTextView.setText(
+                DBUtilities.HasNewEpisodes(mContext, podcastId) ?
+                        podcast.getTitle() + " *" :
+                        podcast.getTitle()
+        );
     }
 
     @Override
